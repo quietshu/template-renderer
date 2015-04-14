@@ -1,169 +1,167 @@
 <!doctype html>
 <html>
 <head>
-	<title>HTML Template Renderer</title>
+  <title>HTML Template Renderer</title>
 </head>
 <body>
 
-	A simple (and no library dependencies) HTML template renderer. <br/> 
-	Shu Ding @ 2015.4.15. View page source please. <br/> 
-	<a href="https://github.com/quietshu/template-renderer" target="_blank">https://github.com/quietshu/template-renderer</a>
+  A simple (and no library dependencies) HTML template renderer. <br/> Shu Ding @ 2015.4.15. View page source please. <br/> <a href="https://github.com/quietshu/template-renderer" target="_blank">https://github.com/quietshu/template-renderer</a>
 
-	<hr/>
+  <hr/>
 
-	<div class="presenter-question-container">
-		<p>Type: {type}</p>
-		<ul>
-			<li presenter-for="{$index in data.choice}">
-				<input type="radio" name="presenter-question-single-choice-{id}" id="presenter-question-{id}-choice-{$index}" />
-				<label for="presenter-question-{id}-choice-{$index}">{data.choice[$index].text}</label>
-			</li>
-		</ul>
-	</div>
+  <div class="presenter-question-container">
+    <p>Type: {type}</p>
+    <ul>
+      <li presenter-for="{$index in data.choice}">
+        <input type="radio" name="presenter-question-single-choice-{id}" id="presenter-question-{id}-choice-{$index}" />
+        <label for="presenter-question-{id}-choice-{$index}">{data.choice[$index].text}</label>
+      </li>
+    </ul>
+  </div>
 
-	<hr/>
+  <hr/>
 
-	<p class="presenter-question-container">
-		I am a {type} and I have {data.choice.length} choices. <br/>
-		They are:<span presenter-for="{$index in data.choice}"> {data.choice[$index].text}</span>.
-	</p>
+  <p class="presenter-question-container">
+    I am a {type} and I have {data.choice.length} choices. <br/>
+    They are:<span presenter-for="{$index in data.choice}"> {data.choice[$index].text}</span>.
+  </p>
 
-	<hr/>
+  <hr/>
 
-	<script type="text/javascript">
+  <script type="text/javascript">
 
-		var rawData = {
-			id: 42,
-			type: 'single choice',
-			data: {
-				choice: [
-					{
-						index: 0, // index is very necessary for (furthur) arrays' diff
-						text: 'A'
-					},
-					{
-						index: 1,
-						text: 'B'
-					},
-					{
-						index: 2,
-						text: 'C'
-					},
-					{
-						index: 3,
-						text: 'D'
-					}
-				]
-			}
-		};
+    var rawData = {
+      id: 42,
+      type: 'single choice',
+      data: {
+        choice: [
+          {
+            index: 0, // index is very necessary for (furthur) arrays' diff
+            text: 'A'
+          },
+          {
+            index: 1,
+            text: 'B'
+          },
+          {
+            index: 2,
+            text: 'C'
+          },
+          {
+            index: 3,
+            text: 'D'
+          }
+        ]
+      }
+    };
 
 
-		// ================
+    // ================
 
-		var traverseClass = function (data) {
+    var traverseClass = function (data) {
 
-			var globalVariables = {};
+      var globalVariables = {};
 
-			var parseString = function (str) {
-				var result = data;
-				str = str.replace(/\[/g, '.').replace(/\]/g, '');
+      var parseString = function (str) {
+        var result = data;
+        str = str.replace(/\[/g, '.').replace(/\]/g, '');
 
-				str.split('.').forEach(function (prop) {
-					if (prop[0] == '$') { // global variable
-						prop = globalVariables[prop];
-						if (result && typeof result[prop] !== 'undefined')
-							result = result[prop];
-						else
-							result = prop;
-					}
-					else if (result && typeof result[prop] !== 'undefined')
-						result = result[prop];
-				});
+        str.split('.').forEach(function (prop) {
+          if (prop[0] == '$') { // global variable
+            prop = globalVariables[prop];
+            if (result && typeof result[prop] !== 'undefined')
+              result = result[prop];
+            else
+              result = prop;
+          }
+          else if (result && typeof result[prop] !== 'undefined')
+            result = result[prop];
+        });
 
-				return result;
-			};
+        return result;
+      };
 
-			var replaceValue = function (value) {
-				if (typeof value !== 'string')
-					return value;
-				var index = [];
+      var replaceValue = function (value) {
+        if (typeof value !== 'string')
+          return value;
+        var index = [];
 
-				while (index = value.match(/{[^{}\\]+?}/g), index !== null && index.length) {
-					var raw = index[0], str = index[0].substr(1, index[0].length - 2);
-					var res = parseString(str);
-					value = value.replace(raw, (res.toString ? res.toString() : ''));
-				}
+        while (index = value.match(/{[^{}\\]+?}/g), index !== null && index.length) {
+          var raw = index[0], str = index[0].substr(1, index[0].length - 2);
+          var res = parseString(str);
+          value = value.replace(raw, (res.toString ? res.toString() : ''));
+        }
 
-				return value;
-			};
+        return value;
+      };
 
-			var recursiveFn = function (element) {
-				if (element.nodeType) {
-					var attributes = {
-						'id'			: element.id,
-						'for'			: element.getAttribute ? element.getAttribute('for') : '',
-						'name' 			: element.name,
-						'className'		: element.className,
-						'nodeValue'		: element.nodeValue	// for `#TEXT` node
-					};
-					for (var key in attributes)
-						if (attributes.hasOwnProperty(key)) {
-							var value = replaceValue(attributes[key]);
-							if (value) {
-								if (element[key])
-									element[key] = value;
-								else if (element.setAttribute)
-									element.setAttribute(key, value);
-							}
-						}
+      var recursiveFn = function (element) {
+        if (element.nodeType) {
+          var attributes = {
+            'id'      : element.id,
+            'for'     : element.getAttribute ? element.getAttribute('for') : '',
+            'name'      : element.name,
+            'className'   : element.className,
+            'nodeValue'   : element.nodeValue // for `#TEXT` node
+          };
+          for (var key in attributes)
+            if (attributes.hasOwnProperty(key)) {
+              var value = replaceValue(attributes[key]);
+              if (value) {
+                if (element[key])
+                  element[key] = value;
+                else if (element.setAttribute)
+                  element.setAttribute(key, value);
+              }
+            }
 
-					// loops
-					if (element.hasAttribute && element.hasAttribute('presenter-for')) {
-						var statemant 	= element.getAttribute('presenter-for');
-						statemant = statemant.substr(1, statemant.length - 2).split(' in ');
+          // loops
+          if (element.hasAttribute && element.hasAttribute('presenter-for')) {
+            var statemant   = element.getAttribute('presenter-for');
+            statemant = statemant.substr(1, statemant.length - 2).split(' in ');
 
-						var iterator 	= statemant[0],
-							array		= statemant[1];
-						if (iterator && array) {
-							array = parseString(array);
-							var lastElement = null;
-							element.setAttribute('presenter-for', ''); // clear loop for parent's recursive
-							for (var i in array)
-								if (array.hasOwnProperty(i)) {
-									if (lastElement) {
-										var thisElement = lastElement.cloneNode(true);
-										if (lastElement.nextSibling)
-											lastElement.parentNode.insertBefore(thisElement, lastElement.nextSibling);
-										else
-											lastElement.parentNode.appendChild(thisElement);
-										[].forEach.call(lastElement.childNodes, recursiveFn);
-										lastElement = thisElement;
-										globalVariables[iterator] = i;
-									}
-									else {
-										lastElement = element;
-										globalVariables[iterator] = i;
-									}
-								}
-								
-							if (lastElement !== null)
-								[].forEach.call(lastElement.childNodes, recursiveFn);
-						}
-					}
-					else
-						[].forEach.call(element.childNodes, recursiveFn);
-				}
-			};
+            var iterator  = statemant[0],
+              array   = statemant[1];
+            if (iterator && array) {
+              array = parseString(array);
+              var lastElement = null;
+              element.setAttribute('presenter-for', ''); // clear loop for parent's recursive
+              for (var i in array)
+                if (array.hasOwnProperty(i)) {
+                  if (lastElement) {
+                    var thisElement = lastElement.cloneNode(true);
+                    if (lastElement.nextSibling)
+                      lastElement.parentNode.insertBefore(thisElement, lastElement.nextSibling);
+                    else
+                      lastElement.parentNode.appendChild(thisElement);
+                    [].forEach.call(lastElement.childNodes, recursiveFn);
+                    lastElement = thisElement;
+                    globalVariables[iterator] = i;
+                  }
+                  else {
+                    lastElement = element;
+                    globalVariables[iterator] = i;
+                  }
+                }
+                
+              if (lastElement !== null)
+                [].forEach.call(lastElement.childNodes, recursiveFn);
+            }
+          }
+          else
+            [].forEach.call(element.childNodes, recursiveFn);
+        }
+      };
 
-			return recursiveFn;
-		};
+      return recursiveFn;
+    };
 
-		// ================
+    // ================
 
-		var traverseInstance = traverseClass(rawData);
-		[].forEach.call(document.getElementsByClassName('presenter-question-container'), traverseInstance);
+    var traverseInstance = traverseClass(rawData);
+    [].forEach.call(document.getElementsByClassName('presenter-question-container'), traverseInstance);
 
-	</script>
+  </script>
 
 </body>
 </html>
